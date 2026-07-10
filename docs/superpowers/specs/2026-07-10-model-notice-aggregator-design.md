@@ -50,7 +50,7 @@ notice/
 └── .env.example
 ```
 
-后端依赖：`fastapi`、`uvicorn`、`sqlalchemy`、`apscheduler`、`feedparser`、`httpx`、`beautifulsoup4`、`aiosmtplib`、`itsdangerous`（签发登录 token）、`pytest`（测试）。
+后端依赖：`fastapi`、`uvicorn`、`sqlalchemy`、`apscheduler`、`feedparser`、`httpx`、`beautifulsoup4`、`itsdangerous`（签发登录 token）、`python-dotenv`、`pytest`（测试）。邮件用标准库 `smtplib`（同步实现即可——抓取与发信都跑在 APScheduler 后台线程里，不阻塞 API 事件循环，无需引入 aiosmtplib）。
 
 前后端集成：前端通过 Next.js rewrites 把 `/api/*` 代理到后端（浏览器视角同源），HttpOnly Cookie 直接生效，无需处理 CORS 与跨域 Cookie。
 
@@ -67,6 +67,7 @@ notice/
 | type | `aliyun_rss` / `volcengine` / `rss` / `webpage` |
 | url | 抓取地址 |
 | enabled | 是否启用 |
+| is_builtin | 是否内置源（内置源不可删除，仅可停用） |
 | last_fetch_at | 最近抓取时间 |
 | last_fetch_status | `ok` / `error` / 未抓取 |
 | last_error | 最近一次错误信息（成功时清空） |
@@ -119,6 +120,7 @@ notice/
 | id | 主键 |
 | email | 邮箱 |
 | code | 6 位数字验证码 |
+| created_at | 生成时间（用于 60 秒限流判断） |
 | expires_at | 过期时间（生成后 10 分钟） |
 | used | 是否已使用 |
 
