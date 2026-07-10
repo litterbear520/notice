@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>阿里云公告</title>
+    <link>https://cn.aliyun.com/notice</link>
+    <item>
+      <title>【大模型服务平台百炼】部分老旧模型下线通知</title>
+      <link>https://cn.aliyun.com/notice/118331</link>
+      <pubDate>Wed, 08 Jul 2026 10:00:00 +0800</pubDate>
+      <content:encoded><![CDATA[<p>尊敬的用户，<b>qwen-flash-us</b> 等模型将于 2026-10-10 下线，请迁移至 qwen3.7-plus。</p>]]></content:encoded>
+    </item>
+    <item>
+      <title>【云数据库RDS】价格调整公告</title>
+      <link>https://cn.aliyun.com/notice/118332</link>
+      <pubDate>Tue, 07 Jul 2026 09:00:00 +0800</pubDate>
+      <content:encoded><![CDATA[<p>RDS 部分规格价格调整。</p>]]></content:encoded>
+    </item>
+  </channel>
+</rss>
