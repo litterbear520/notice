@@ -1,3 +1,4 @@
+import html
 import json
 import smtplib
 from email.header import Header
@@ -28,21 +29,24 @@ def build_notices_email(notices) -> tuple[str, str]:
     blocks = []
     for n in notices:
         published = n.published_at.strftime("%Y-%m-%d %H:%M") if n.published_at else "未知"
-        keywords = "、".join(json.loads(n.matched_keywords or "[]"))
-        excerpt = (n.content or "")[:300]
+        source_name = html.escape(n.source.name)
+        title = html.escape(n.title)
+        url = html.escape(n.url, quote=True)
+        excerpt = html.escape((n.content or "")[:300])
+        keywords = html.escape("、".join(json.loads(n.matched_keywords or "[]")))
         blocks.append(
             f'<div style="border:1px solid #ddd;border-radius:8px;padding:16px;margin-bottom:16px;">'
-            f'<div style="color:#888;font-size:12px;">{n.source.name} · {published}'
+            f'<div style="color:#888;font-size:12px;">{source_name} · {published}'
             f'{" · 命中：" + keywords if keywords else ""}</div>'
-            f'<h3 style="margin:8px 0;"><a href="{n.url}">{n.title}</a></h3>'
+            f'<h3 style="margin:8px 0;"><a href="{url}">{title}</a></h3>'
             f'<p style="color:#444;margin:0;">{excerpt}</p></div>'
         )
-    html = (
+    html_body = (
         "<div style='font-family:sans-serif;max-width:680px;'>"
         + "".join(blocks)
         + "<p style='color:#aaa;font-size:12px;'>模型公告聚合平台自动发送</p></div>"
     )
-    return subject, html
+    return subject, html_body
 
 
 def send_login_code(email: str, code: str) -> None:

@@ -41,3 +41,23 @@ def test_excerpt_truncated_to_300(db):
     _, html = build_notices_email([n])
     assert "很" * 300 in html
     assert "很" * 301 not in html
+
+
+def test_html_is_escaped(db):
+    src = Source(name="<script>alert(1)</script>", type="rss", url="http://x")
+    n = _notice(
+        src,
+        title="<img src=x onerror=alert(1)>",
+        url='https://example.com?x"><script>alert(1)</script>',
+        kws=["<b>xss</b>"],
+        content='<div onclick="alert(1)">content</div>'
+    )
+    db.add_all([src, n])
+    db.commit()
+    subject, html = build_notices_email([n])
+    assert "&lt;script&gt;alert(1)&lt;/script&gt;" in html
+    assert "&lt;img src=x onerror=alert(1)&gt;" in html
+    assert "&lt;div onclick=&quot;alert(1)&quot;&gt;content&lt;/div&gt;" in html
+    assert "&lt;b&gt;xss&lt;/b&gt;" in html
+    assert "<script>" not in html
+    assert "<img" not in html
