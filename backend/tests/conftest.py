@@ -1,0 +1,34 @@
+import os
+
+os.environ["ENABLE_SCHEDULER"] = "0"
+os.environ["SECRET_KEY"] = "test-secret"
+
+import pytest
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
+
+from app.models import Base
+
+
+@pytest.fixture()
+def db():
+    engine = create_engine(
+        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
+    )
+    Base.metadata.create_all(engine)
+    factory = sessionmaker(bind=engine, expire_on_commit=False)
+    with factory() as session:
+        yield session
+
+
+@pytest.fixture()
+def sent_emails(monkeypatch):
+    """截获所有外发邮件。pipeline/auth 必须通过 `from . import mailer` + `mailer.send_email(...)` 调用。"""
+    sent = []
+
+    def fake_send(recipients, subject, html):
+        sent.append({"to": list(recipients), "subject": subject, "html": html})
+
+    monkeypatch.setattr("app.mailer.send_email", fake_send)
+    return sent
