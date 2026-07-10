@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Response
@@ -8,6 +9,8 @@ from sqlalchemy.orm import Session
 from .. import auth, mailer
 from ..db import get_session
 from ..models import User
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api")
 
@@ -34,6 +37,7 @@ def request_code(body: RequestCodeBody, db: Session = Depends(get_session)):
     try:
         mailer.send_login_code(email, code)
     except Exception:
+        logger.exception("验证码邮件发送失败")
         raise HTTPException(status_code=502, detail="验证码邮件发送失败，请检查 SMTP 配置")
     return {"message": "验证码已发送"}
 

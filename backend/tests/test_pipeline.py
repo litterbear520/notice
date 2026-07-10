@@ -93,6 +93,17 @@ def test_adapter_error_records_source_status(db, source, monkeypatch):
     assert "网络超时" in source.last_error
 
 
+def test_long_url_truncation_consistent(db, source, monkeypatch):
+    long_url = "http://n/" + "a" * 1200
+    _stub_items(monkeypatch, [FetchedItem(title="超长链接公告", url=long_url)])
+    assert pipeline.fetch_source(db, source) == 1
+    assert pipeline.fetch_source(db, source) == 0
+    notices = list(db.scalars(select(Notice)))
+    assert len(notices) == 1
+    assert len(notices[0].url) == 1000
+    assert source.last_fetch_status == "ok"
+
+
 def test_run_round_covers_enabled_sources_only(db, monkeypatch, sent_emails):
     s1 = Source(name="启用源", type="rss", url="http://a", enabled=True)
     s2 = Source(name="停用源", type="rss", url="http://b", enabled=False)

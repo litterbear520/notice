@@ -7,7 +7,7 @@
 
 ```bash
 cp .env.example .env      # 填入 QQ 邮箱 SMTP 授权码和随机 SECRET_KEY
-docker-compose up -d
+docker compose up -d
 ```
 
 - 网页端：http://localhost:3000 （邮箱验证码登录，登录即订阅提醒）

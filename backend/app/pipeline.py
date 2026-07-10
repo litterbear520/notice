@@ -31,26 +31,36 @@ def fetch_source(db: Session, source: Source) -> int:
     words = list(db.scalars(select(Keyword.word).where(Keyword.enabled == True)))  # noqa: E712
     existing = set(db.scalars(select(Notice.url).where(Notice.source_id == source.id)))
     new_count = 0
-    for item in items:
-        if item.url in existing:
-            continue
-        existing.add(item.url)
-        matches = find_matches(item.title, item.content, words)
-        db.add(Notice(
-            source_id=source.id,
-            title=item.title[:500],
-            url=item.url[:1000],
-            content=item.content[:5000],
-            published_at=item.published_at or datetime.utcnow(),
-            matched=bool(matches),
-            matched_keywords=json.dumps(matches, ensure_ascii=False),
-            is_baseline=is_first_fetch,
-        ))
-        new_count += 1
-    source.last_fetch_at = datetime.utcnow()
-    source.last_fetch_status = "ok"
-    source.last_error = None
-    db.commit()
+    try:
+        for item in items:
+            url = item.url[:1000]
+            if url in existing:
+                continue
+            existing.add(url)
+            matches = find_matches(item.title, item.content, words)
+            db.add(Notice(
+                source_id=source.id,
+                title=item.title[:500],
+                url=url,
+                content=item.content[:5000],
+                published_at=item.published_at or datetime.utcnow(),
+                matched=bool(matches),
+                matched_keywords=json.dumps(matches, ensure_ascii=False),
+                is_baseline=is_first_fetch,
+            ))
+            new_count += 1
+        source.last_fetch_at = datetime.utcnow()
+        source.last_fetch_status = "ok"
+        source.last_error = None
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        source.last_fetch_at = datetime.utcnow()
+        source.last_fetch_status = "error"
+        source.last_error = str(e)[:1000]
+        db.commit()
+        logger.warning("源「%s」抓取失败: %s", source.name, e)
+        return 0
     return new_count
 
 

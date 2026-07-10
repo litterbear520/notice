@@ -1,10 +1,13 @@
 import json
+import logging
 import re
 from datetime import datetime, timezone
 
 import httpx
 
 from . import AdapterError, FetchedItem, USER_AGENT
+
+logger = logging.getLogger(__name__)
 
 LIBRARY_ID = 82379
 ANNOUNCE_ROOT_DOC_ID = "1159176"  # 「产品公告」目录节点
@@ -106,5 +109,7 @@ def fetch(url: str) -> list[FetchedItem]:
                 doc_list_map = dlm
     if not items:
         raise AdapterError("火山引擎监控文档全部抓取失败: " + "; ".join(errors))
+    if errors:
+        logger.warning("火山引擎部分文档抓取失败: %s", "; ".join(errors))
     items.extend(_new_doc_items(doc_list_map))
     return items

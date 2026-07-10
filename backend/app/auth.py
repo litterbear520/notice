@@ -1,5 +1,5 @@
-import random
 import re
+import secrets
 from datetime import datetime, timedelta
 
 from fastapi import Depends, HTTPException, Request
@@ -40,7 +40,7 @@ def create_login_code(db: Session, email: str) -> str:
     ).first()
     if latest and (datetime.utcnow() - latest.created_at).total_seconds() < RESEND_INTERVAL_SECONDS:
         raise HTTPException(status_code=429, detail="请求过于频繁，请 60 秒后再试")
-    code = f"{random.randint(0, 999999):06d}"
+    code = f"{secrets.randbelow(10**6):06d}"
     db.add(LoginCode(
         email=email, code=code,
         created_at=datetime.utcnow(),

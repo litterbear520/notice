@@ -1,6 +1,7 @@
 import html
 import json
 import smtplib
+from datetime import timedelta
 from email.header import Header
 from email.mime.text import MIMEText
 from email.utils import formataddr
@@ -8,10 +9,10 @@ from email.utils import formataddr
 from .config import settings
 
 
-def send_email(recipients: list[str], subject: str, html: str) -> None:
+def send_email(recipients: list[str], subject: str, html_body: str) -> None:
     if not settings.smtp_user or not settings.smtp_auth_code:
         raise RuntimeError("SMTP 未配置：请设置 SMTP_USER 和 SMTP_AUTH_CODE 环境变量")
-    msg = MIMEText(html, "html", "utf-8")
+    msg = MIMEText(html_body, "html", "utf-8")
     msg["Subject"] = Header(subject, "utf-8")
     msg["From"] = formataddr(("模型公告提醒", settings.smtp_user))
     msg["To"] = ", ".join(recipients)
@@ -28,7 +29,10 @@ def build_notices_email(notices) -> tuple[str, str]:
         subject = f"【模型公告提醒】{first.source.name}等 {len(notices)} 条新公告"
     blocks = []
     for n in notices:
-        published = n.published_at.strftime("%Y-%m-%d %H:%M") if n.published_at else "未知"
+        published = (
+            (n.published_at + timedelta(hours=8)).strftime("%Y-%m-%d %H:%M") + "（北京时间）"
+            if n.published_at else "未知"
+        )
         source_name = html.escape(n.source.name)
         title = html.escape(n.title)
         url = html.escape(n.url, quote=True)

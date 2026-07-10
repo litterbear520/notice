@@ -17,6 +17,9 @@ export default function SourcesPage() {
   const [name, setName] = useState("");
   const [type, setType] = useState("rss");
   const [url, setUrl] = useState("");
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editUrl, setEditUrl] = useState("");
 
   const load = useCallback(() => {
     api<SourceItem[]>("/api/sources").then(setSources).catch((e) => setError(e.message));
@@ -63,6 +66,22 @@ export default function SourcesPage() {
     setBusy(null);
   };
 
+  const startEdit = (s: SourceItem) => {
+    setEditingId(s.id);
+    setEditName(s.name);
+    setEditUrl(s.url);
+  };
+
+  const cancelEdit = () => setEditingId(null);
+
+  const saveEdit = (s: SourceItem) =>
+    run(async () => {
+      const body: { name: string; url?: string } = { name: editName };
+      if (!s.is_builtin) body.url = editUrl;
+      await api(`/api/sources/${s.id}`, { method: "PATCH", body: JSON.stringify(body) });
+      setEditingId(null);
+    });
+
   return (
     <div>
       <h2 style={{ marginBottom: 16 }}>源管理</h2>
@@ -90,10 +109,22 @@ export default function SourcesPage() {
         <tbody>
           {sources.map((s) => (
             <tr key={s.id} style={{ opacity: s.enabled ? 1 : 0.5 }}>
-              <td>
-                {s.name}
-                <div style={{ fontSize: 12, color: "#9ca3af", wordBreak: "break-all" }}>{s.url}</div>
-              </td>
+              {editingId === s.id ? (
+                <td>
+                  <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} />
+                  {s.is_builtin ? (
+                    <div style={{ fontSize: 12, color: "#9ca3af", wordBreak: "break-all" }}>{s.url}</div>
+                  ) : (
+                    <input type="text" style={{ marginTop: 4 }}
+                           value={editUrl} onChange={(e) => setEditUrl(e.target.value)} />
+                  )}
+                </td>
+              ) : (
+                <td>
+                  {s.name}
+                  <div style={{ fontSize: 12, color: "#9ca3af", wordBreak: "break-all" }}>{s.url}</div>
+                </td>
+              )}
               <td>{TYPE_LABELS[s.type] ?? s.type}</td>
               <td>{formatTime(s.last_fetch_at)}</td>
               <td>
@@ -107,12 +138,22 @@ export default function SourcesPage() {
               </td>
               <td>
                 <div className="form-row">
-                  <button onClick={() => fetchNow(s)} disabled={busy === s.id}>
-                    {busy === s.id ? "抓取中…" : "立即抓取"}
-                  </button>
-                  <button onClick={() => toggle(s)}>{s.enabled ? "停用" : "启用"}</button>
-                  {!s.is_builtin && (
-                    <button className="danger" onClick={() => remove(s)}>删除</button>
+                  {editingId === s.id ? (
+                    <>
+                      <button className="primary" onClick={() => saveEdit(s)} disabled={!editName}>保存</button>
+                      <button onClick={cancelEdit}>取消</button>
+                    </>
+                  ) : (
+                    <>
+                      <button onClick={() => fetchNow(s)} disabled={busy === s.id}>
+                        {busy === s.id ? "抓取中…" : "立即抓取"}
+                      </button>
+                      <button onClick={() => toggle(s)}>{s.enabled ? "停用" : "启用"}</button>
+                      <button onClick={() => startEdit(s)}>编辑</button>
+                      {!s.is_builtin && (
+                        <button className="danger" onClick={() => remove(s)}>删除</button>
+                      )}
+                    </>
                   )}
                 </div>
               </td>
