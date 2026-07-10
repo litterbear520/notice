@@ -32,3 +32,19 @@ def sent_emails(monkeypatch):
 
     monkeypatch.setattr("app.mailer.send_email", fake_send)
     return sent
+
+
+@pytest.fixture()
+def client(db):
+    from fastapi.testclient import TestClient
+
+    from app.db import get_session
+    from app.main import app
+
+    def override():
+        yield db
+
+    app.dependency_overrides[get_session] = override
+    # 不用 with（避免触发 lifespan 里的 init_db/scheduler），直接请求即可
+    yield TestClient(app)
+    app.dependency_overrides.clear()
