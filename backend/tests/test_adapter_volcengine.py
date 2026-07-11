@@ -1,9 +1,11 @@
 from datetime import datetime
 from pathlib import Path
 
+import httpx
 import pytest
 
 from app.adapters import AdapterError
+from app.adapters import volcengine
 from app.adapters.volcengine import _new_doc_items, parse_doc_page
 
 HTML = (Path(__file__).parent / "fixtures" / "volcengine.html").read_text(encoding="utf-8")
@@ -43,3 +45,25 @@ def test_new_doc_items_covers_announcement_subtree_only():
 def test_missing_router_data_raises():
     with pytest.raises(AdapterError):
         parse_doc_page("<html><body>改版了</body></html>", "1350667")
+
+
+# 站点 SSR 故障时会以 HTTP 200 返回不含 _ROUTER_DATA 的错误壳页面
+ERROR_SHELL = '<!doctype html><html><head><!-- 错误码css --></head><body></body></html>'
+
+
+def test_fetch_retries_transient_error_page(monkeypatch):
+    calls: list[str] = []
+
+    def fake_get(self, url, params=None):
+        calls.append(url)
+        # 第一个文档前两次命中降级错误页，第三次及之后返回正常页面
+        text = ERROR_SHELL if len(calls) <= 2 else HTML
+        return httpx.Response(200, text=text, request=httpx.Request("GET", url))
+
+    monkeypatch.setattr(httpx.Client, "get", fake_get)
+    monkeypatch.setattr(volcengine.time, "sleep", lambda s: None)
+
+    items = volcengine.fetch("https://docs.volcengine.com/docs/82379/1159176?lang=zh")
+    updated = [i for i in items if i.title.endswith("已更新")]
+    # 三个监控文档都应成功（第一个靠重试拿到正常页面）
+    assert len(updated) == len(volcengine.WATCH_DOC_IDS)

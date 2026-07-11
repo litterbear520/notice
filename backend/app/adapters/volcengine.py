@@ -1,6 +1,7 @@
 import json
 import logging
 import re
+import time
 from datetime import datetime, timezone
 
 import httpx
@@ -13,6 +14,10 @@ LIBRARY_ID = 82379
 ANNOUNCE_ROOT_DOC_ID = "1159176"  # 「产品公告」目录节点
 # 三个原地更新的主公告文档：模型下线公告 / 模型发布公告 / 产品更新公告
 WATCH_DOC_IDS = ["1350667", "1159178", "1159177"]
+# 站点 SSR 间歇性故障时会以 HTTP 200 返回不含 _ROUTER_DATA 的错误壳页面，需重试
+# （实测故障率可达 50%，4 次尝试 + 递增退避可把单文档漏检率压到个位数百分比）
+MAX_ATTEMPTS = 4
+RETRY_DELAY_SECONDS = 1.0
 
 _ROUTER_DATA_RE = re.compile(r"window\._ROUTER_DATA = (\{.*?\})\s*</script>", re.S)
 
@@ -30,7 +35,9 @@ def _parse_time(value: str) -> datetime | None:
 def parse_doc_page(html: str, doc_id: str) -> tuple[FetchedItem | None, dict | None]:
     m = _ROUTER_DATA_RE.search(html)
     if not m:
-        raise AdapterError(f"文档 {doc_id} 页面中未找到 _ROUTER_DATA（站点可能已改版）")
+        raise AdapterError(
+            f"文档 {doc_id} 页面中未找到 _ROUTER_DATA（站点临时故障或已改版）"
+        )
     try:
         data = json.loads(m.group(1))
     except json.JSONDecodeError as e:
@@ -93,15 +100,24 @@ def fetch(url: str) -> list[FetchedItem]:
         headers={"User-Agent": USER_AGENT}, timeout=30, follow_redirects=True
     ) as client:
         for doc_id in WATCH_DOC_IDS:
-            try:
-                resp = client.get(
-                    f"https://docs.volcengine.com/docs/{LIBRARY_ID}/{doc_id}",
-                    params={"lang": "zh"},
-                )
-                resp.raise_for_status()
-                item, dlm = parse_doc_page(resp.text, doc_id)
-            except (httpx.HTTPError, AdapterError) as e:
-                errors.append(f"{doc_id}: {e}")
+            item = dlm = None
+            last_error: Exception | None = None
+            for attempt in range(MAX_ATTEMPTS):
+                if attempt:
+                    time.sleep(RETRY_DELAY_SECONDS * attempt)
+                try:
+                    resp = client.get(
+                        f"https://docs.volcengine.com/docs/{LIBRARY_ID}/{doc_id}",
+                        params={"lang": "zh"},
+                    )
+                    resp.raise_for_status()
+                    item, dlm = parse_doc_page(resp.text, doc_id)
+                    last_error = None
+                    break
+                except (httpx.HTTPError, AdapterError) as e:
+                    last_error = e
+            if last_error is not None:
+                errors.append(f"{doc_id}: 重试 {MAX_ATTEMPTS} 次仍失败: {last_error}")
                 continue
             if item:
                 items.append(item)
