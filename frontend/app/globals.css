@@ -176,6 +176,20 @@ a:hover { text-decoration: underline; }
   margin-bottom: 6px;
 }
 .page-desc { font-size: 13px; color: var(--muted); margin-bottom: 18px; }
+
+/* 首页标题行：左标题右 Fable 5 Verified 横幅（源自 CC Switch v3.16.3 关于页） */
+.page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.fable-verified {
+  height: 44px;
+  width: auto;
+  flex-shrink: 0;
+  margin-top: 2px;
+  user-select: none;
+}
+[data-theme="dark"] .fable-verified {
+  /* 奶油底横幅在暖黑画布上像一枚实体标签，压一点亮度融入环境 */
+  filter: brightness(0.92);
+}
 .section-title {
   font-family: var(--font-display);
   font-size: 17px;
@@ -409,4 +423,5 @@ td:first-child { min-width: 160px; }
   .nav .user { max-width: 130px; }
   .container { margin-top: 20px; }
   .page-title { font-size: 22px; }
+  .fable-verified { height: 32px; }
 }
