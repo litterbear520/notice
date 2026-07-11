@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { api, formatTime, NoticeList, SourceItem } from "@/lib/api";
+import { FableFlight } from "./components/Fable";
 
 const PAGE_SIZE = 20;
 
@@ -38,8 +39,13 @@ export default function Home() {
 
   return (
     <div>
-      <h2 className="page-title">公告时间线</h2>
-      <p className="page-desc">聚合各模型厂商的官方公告，命中关键词的公告会触发邮件提醒。</p>
+      <div className="hero">
+        <div>
+          <h2 className="page-title">公告时间线</h2>
+          <p className="page-desc">聚合各模型厂商的官方公告，命中关键词的公告会触发邮件提醒。</p>
+        </div>
+        <FableFlight />
+      </div>
       <div className="toolbar">
         <select value={sourceId} onChange={(e) => { setSourceId(e.target.value); setPage(1); }}>
           <option value="">全部源</option>

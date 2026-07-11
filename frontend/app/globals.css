@@ -294,6 +294,54 @@ td .form-row { flex-wrap: nowrap; }
 td.nowrap { white-space: nowrap; }
 td:first-child { min-width: 160px; }
 
+/* ===== Fable 蝴蝶主题装饰 ===== */
+.hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; margin-bottom: 16px; }
+.hero .page-desc { margin-bottom: 2px; }
+.fable-flight {
+  width: min(500px, 54%);
+  height: auto;
+  overflow: visible;
+  pointer-events: none;
+  flex-shrink: 1;
+}
+.flight-path {
+  fill: none;
+  stroke: var(--muted-soft);
+  stroke-width: 1.1;
+  stroke-dasharray: 0.5 7;
+  stroke-linecap: round;
+  opacity: 0.55;
+}
+
+.bfly .fw { opacity: 0.88; }
+.bfly .hw { opacity: 0.6; }
+.bfly .spot { fill: var(--canvas); opacity: 0.55; }
+.bfly .body-seg { fill: var(--ink); opacity: 0.7; }
+.bfly .feeler { fill: none; stroke: var(--ink); stroke-width: 0.7; opacity: 0.5; }
+.bfly-coral .fw, .bfly-coral .hw { fill: var(--primary); }
+.bfly-gold .fw, .bfly-gold .hw { fill: var(--kw-text); }
+.bfly-ink .fw, .bfly-ink .hw { fill: var(--body-text); }
+.bfly-sage .fw, .bfly-sage .hw { fill: var(--success); }
+
+.bfly .flap {
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: bfly-flap 2.6s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+.bfly .drift {
+  animation: bfly-drift 5.6s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+@keyframes bfly-flap {
+  0%, 100% { transform: scaleX(1); }
+  50% { transform: scaleX(0.74); }
+}
+@keyframes bfly-drift {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3.5px); }
+}
+
 /* ===== 登录页 ===== */
 .login-wrap { display: flex; justify-content: center; padding-top: 7vh; }
 .login-card {
@@ -409,4 +457,6 @@ td:first-child { min-width: 160px; }
   .nav .user { max-width: 130px; }
   .container { margin-top: 20px; }
   .page-title { font-size: 22px; }
+  .hero { flex-direction: column; align-items: stretch; gap: 4px; }
+  .fable-flight { width: 100%; max-width: 400px; align-self: flex-end; }
 }

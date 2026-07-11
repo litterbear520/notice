@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api, Me } from "@/lib/api";
 import ThemeToggle from "./ThemeToggle";
+import { Butterfly } from "./Fable";
 
 const ADMIN_LINKS = [
   { href: "/sources", label: "源管理" },
@@ -22,9 +23,7 @@ export default function NavBar() {
   return (
     <nav className="nav">
       <Link className="brand" href="/">
-        <svg className="spark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true">
-          <path d="M12 3v18M3 12h18M6 6l12 12M18 6L6 18" />
-        </svg>
+        <Butterfly className="spark" size={22} tone="coral" />
         模型公告聚合
       </Link>
       <Link className={`link${pathname === "/" ? " active" : ""}`} href="/">
