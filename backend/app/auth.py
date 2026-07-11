@@ -113,3 +113,13 @@ def get_current_user(request: Request, db: Session = Depends(get_session)) -> Us
     if not user:
         raise HTTPException(status_code=401, detail="用户不存在")
     return user
+
+
+def is_admin(email: str) -> bool:
+    return email.lower() in settings.admin_email_set
+
+
+def get_current_admin(user: User = Depends(get_current_user)) -> User:
+    if not is_admin(user.email):
+        raise HTTPException(status_code=403, detail="需要管理员账号")
+    return user

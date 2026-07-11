@@ -70,7 +70,11 @@ def logout(response: Response):
 
 @router.get("/me")
 def me(user: User = Depends(auth.get_current_user)):
-    return {"email": user.email, "notify_enabled": user.notify_enabled}
+    return {
+        "email": user.email,
+        "notify_enabled": user.notify_enabled,
+        "is_admin": auth.is_admin(user.email),
+    }
 
 
 @router.patch("/me")
@@ -81,12 +85,16 @@ def update_me(
 ):
     user.notify_enabled = body.notify_enabled
     db.commit()
-    return {"email": user.email, "notify_enabled": user.notify_enabled}
+    return {
+        "email": user.email,
+        "notify_enabled": user.notify_enabled,
+        "is_admin": auth.is_admin(user.email),
+    }
 
 
 @router.get("/users")
 def list_users(
-    user: User = Depends(auth.get_current_user), db: Session = Depends(get_session)
+    user: User = Depends(auth.get_current_admin), db: Session = Depends(get_session)
 ):
     users = db.scalars(select(User).order_by(User.created_at)).all()
     return [

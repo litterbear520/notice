@@ -71,16 +71,33 @@ def test_me_requires_login(client):
 
 def test_me_and_notify_toggle(client, db, sent_emails):
     _login(client, db)
-    assert client.get("/api/me").json() == {"email": "user@qq.com", "notify_enabled": True}
+    assert client.get("/api/me").json() == {
+        "email": "user@qq.com", "notify_enabled": True, "is_admin": False,
+    }
     resp = client.patch("/api/me", json={"notify_enabled": False})
     assert resp.json()["notify_enabled"] is False
 
 
-def test_users_list_requires_login_and_lists_members(client, db, sent_emails):
+def test_users_list_admin_only(client, db, sent_emails):
     assert client.get("/api/users").status_code == 401
-    _login(client, db)
+    _login(client, db)  # 普通用户
+    assert client.get("/api/users").status_code == 403
+    _login(client, db, email="admin@qq.com")
     users = client.get("/api/users").json()
-    assert [u["email"] for u in users] == ["user@qq.com"]
+    assert {u["email"] for u in users} == {"user@qq.com", "admin@qq.com"}
+
+
+def test_admin_flag_in_me(client, db, sent_emails):
+    _login(client, db, email="admin@qq.com")
+    assert client.get("/api/me").json()["is_admin"] is True
+
+
+def test_management_requires_admin_not_just_login(client, db, sent_emails):
+    _login(client, db)  # 普通用户已登录
+    r = client.post("/api/sources", json={"name": "x", "type": "rss", "url": "https://x.com/rss"})
+    assert r.status_code == 403
+    r = client.post("/api/keywords", json={"word": "下线"})
+    assert r.status_code == 403
 
 
 def test_logout_clears_cookie(client, db, sent_emails):

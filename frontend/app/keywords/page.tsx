@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { api, KeywordItem } from "@/lib/api";
+import { api, KeywordItem, Me } from "@/lib/api";
 
 export default function KeywordsPage() {
+  const [allowed, setAllowed] = useState<boolean | null>(null);
   const [keywords, setKeywords] = useState<KeywordItem[]>([]);
   const [word, setWord] = useState("");
   const [error, setError] = useState("");
@@ -12,7 +13,17 @@ export default function KeywordsPage() {
     api<KeywordItem[]>("/api/keywords").then(setKeywords).catch((e) => setError(e.message));
   }, []);
 
-  useEffect(load, [load]);
+  useEffect(() => {
+    api<Me>("/api/me")
+      .then((m) => {
+        if (!m.is_admin) { window.location.href = "/"; return; }
+        setAllowed(true);
+        load();
+      })
+      .catch(() => { window.location.href = "/login"; });
+  }, [load]);
+
+  if (!allowed) return null;
 
   const run = async (fn: () => Promise<unknown>) => {
     try {

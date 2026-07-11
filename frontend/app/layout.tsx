@@ -1,4 +1,3 @@
-import "lxgw-wenkai-webfont/lxgwwenkai-regular.css";
 import "./globals.css";
 import NavBar from "./components/NavBar";
 

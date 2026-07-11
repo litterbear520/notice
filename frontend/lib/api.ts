@@ -38,6 +38,7 @@ export interface KeywordItem {
 export interface Me {
   email: string;
   notify_enabled: boolean;
+  is_admin: boolean;
 }
 
 export async function api<T>(path: string, options: RequestInit = {}): Promise<T> {

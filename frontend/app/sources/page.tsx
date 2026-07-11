@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { api, formatTime, SourceItem } from "@/lib/api";
+import { api, formatTime, Me, SourceItem } from "@/lib/api";
 
 const TYPE_LABELS: Record<string, string> = {
   aliyun_rss: "内置·阿里云RSS",
@@ -11,6 +11,7 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export default function SourcesPage() {
+  const [allowed, setAllowed] = useState<boolean | null>(null);
   const [sources, setSources] = useState<SourceItem[]>([]);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState<number | null>(null);
@@ -25,7 +26,17 @@ export default function SourcesPage() {
     api<SourceItem[]>("/api/sources").then(setSources).catch((e) => setError(e.message));
   }, []);
 
-  useEffect(load, [load]);
+  useEffect(() => {
+    api<Me>("/api/me")
+      .then((m) => {
+        if (!m.is_admin) { window.location.href = "/"; return; }
+        setAllowed(true);
+        load();
+      })
+      .catch(() => { window.location.href = "/login"; });
+  }, [load]);
+
+  if (!allowed) return null;
 
   const run = async (fn: () => Promise<unknown>) => {
     try {

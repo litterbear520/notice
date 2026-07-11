@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .. import pipeline
-from ..auth import get_current_user
+from ..auth import get_current_admin
 from ..db import get_session
 from ..models import Source
 
@@ -46,7 +46,7 @@ def list_sources(db: Session = Depends(get_session)):
 
 @router.post("/sources", status_code=201)
 def create_source(
-    body: SourceCreate, db: Session = Depends(get_session), _=Depends(get_current_user)
+    body: SourceCreate, db: Session = Depends(get_session), _=Depends(get_current_admin)
 ):
     if body.type not in ("rss", "webpage"):
         raise HTTPException(status_code=422, detail="自定义源类型仅支持 rss 或 webpage")
@@ -61,7 +61,7 @@ def create_source(
 @router.patch("/sources/{source_id}")
 def update_source(
     source_id: int, body: SourcePatch,
-    db: Session = Depends(get_session), _=Depends(get_current_user),
+    db: Session = Depends(get_session), _=Depends(get_current_admin),
 ):
     source = _get_or_404(db, source_id)
     if body.name is not None:
@@ -78,7 +78,7 @@ def update_source(
 
 @router.delete("/sources/{source_id}", status_code=204)
 def delete_source(
-    source_id: int, db: Session = Depends(get_session), _=Depends(get_current_user)
+    source_id: int, db: Session = Depends(get_session), _=Depends(get_current_admin)
 ):
     source = _get_or_404(db, source_id)
     if source.is_builtin:
@@ -89,7 +89,7 @@ def delete_source(
 
 @router.post("/sources/{source_id}/fetch")
 def fetch_now(
-    source_id: int, db: Session = Depends(get_session), _=Depends(get_current_user)
+    source_id: int, db: Session = Depends(get_session), _=Depends(get_current_admin)
 ):
     source = _get_or_404(db, source_id)
     new_items = pipeline.fetch_source(db, source)

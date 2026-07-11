@@ -16,6 +16,12 @@ class Settings:
     fetch_interval_minutes: int = int(os.getenv("FETCH_INTERVAL_MINUTES", "30"))
     database_url: str = os.getenv("DATABASE_URL", "sqlite:///./data/notice.db")
     enable_scheduler: bool = os.getenv("ENABLE_SCHEDULER", "1") == "1"
+    # 管理员邮箱，逗号分隔；仅管理员可管理源/关键词与查看成员列表
+    admin_emails: str = os.getenv("ADMIN_EMAILS", "970219247@qq.com")
+
+    @property
+    def admin_email_set(self) -> frozenset[str]:
+        return frozenset(e.strip().lower() for e in self.admin_emails.split(",") if e.strip())
 
 
 settings = Settings()

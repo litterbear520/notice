@@ -6,8 +6,7 @@ import { useEffect, useState } from "react";
 import { api, Me } from "@/lib/api";
 import ThemeToggle from "./ThemeToggle";
 
-const LINKS = [
-  { href: "/", label: "公告时间线" },
+const ADMIN_LINKS = [
   { href: "/sources", label: "源管理" },
   { href: "/keywords", label: "关键词" },
 ];
@@ -28,7 +27,10 @@ export default function NavBar() {
         </svg>
         模型公告聚合
       </Link>
-      {LINKS.map((l) => (
+      <Link className={`link${pathname === "/" ? " active" : ""}`} href="/">
+        公告时间线
+      </Link>
+      {me?.is_admin && ADMIN_LINKS.map((l) => (
         <Link
           key={l.href}
           className={`link${pathname === l.href ? " active" : ""}`}

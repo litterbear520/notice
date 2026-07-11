@@ -18,7 +18,7 @@ export default function SettingsPage() {
     api<Me>("/api/me")
       .then((m) => {
         setMe(m);
-        return api<Member[]>("/api/users").then(setMembers);
+        if (m.is_admin) return api<Member[]>("/api/users").then(setMembers);
       })
       .catch(() => { window.location.href = "/login"; });
   }, []);
@@ -69,6 +69,7 @@ export default function SettingsPage() {
         </div>
       </div>
 
+      {me.is_admin && (<>
       <h3 className="section-title">成员列表</h3>
       <div className="table-wrap">
       <table>
@@ -86,6 +87,7 @@ export default function SettingsPage() {
         </tbody>
       </table>
       </div>
+      </>)}
     </div>
   );
 }

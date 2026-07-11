@@ -2,6 +2,7 @@ import os
 
 os.environ["ENABLE_SCHEDULER"] = "0"
 os.environ["SECRET_KEY"] = "test-secret"
+os.environ["ADMIN_EMAILS"] = "admin@qq.com"
 
 import pytest
 from sqlalchemy import create_engine

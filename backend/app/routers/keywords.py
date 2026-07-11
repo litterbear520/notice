@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ..auth import get_current_user
+from ..auth import get_current_admin
 from ..db import get_session
 from ..models import Keyword
 
@@ -28,7 +28,7 @@ def list_keywords(db: Session = Depends(get_session)):
 
 @router.post("/keywords", status_code=201)
 def create_keyword(
-    body: KeywordCreate, db: Session = Depends(get_session), _=Depends(get_current_user)
+    body: KeywordCreate, db: Session = Depends(get_session), _=Depends(get_current_admin)
 ):
     word = body.word.strip()
     if not word:
@@ -44,7 +44,7 @@ def create_keyword(
 @router.patch("/keywords/{keyword_id}")
 def update_keyword(
     keyword_id: int, body: KeywordPatch,
-    db: Session = Depends(get_session), _=Depends(get_current_user),
+    db: Session = Depends(get_session), _=Depends(get_current_admin),
 ):
     keyword = db.get(Keyword, keyword_id)
     if not keyword:
@@ -56,7 +56,7 @@ def update_keyword(
 
 @router.delete("/keywords/{keyword_id}", status_code=204)
 def delete_keyword(
-    keyword_id: int, db: Session = Depends(get_session), _=Depends(get_current_user)
+    keyword_id: int, db: Session = Depends(get_session), _=Depends(get_current_admin)
 ):
     keyword = db.get(Keyword, keyword_id)
     if not keyword:
