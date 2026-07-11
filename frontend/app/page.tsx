@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { api, cleanExcerpt, formatTime, NoticeList, SourceItem } from "@/lib/api";
+import { api, formatTime, NoticeList, SourceItem } from "@/lib/api";
 
 const PAGE_SIZE = 20;
 
@@ -66,24 +66,20 @@ export default function Home() {
 
       {error && <div className="error-box">{error}</div>}
 
-      {data?.items.map((n) => {
-        const excerpt = cleanExcerpt(n.excerpt);
-        return (
-          <div className="card notice" key={n.id}>
-            <div className="meta">
-              <span className="tag">{n.source_name}</span>
-              <span>{formatTime(n.published_at)}</span>
-              {n.matched_keywords.map((k) => (
-                <span className="kw" key={k}>{k}</span>
-              ))}
-            </div>
-            <h3>
-              <a href={n.url} target="_blank" rel="noreferrer">{n.title}</a>
-            </h3>
-            {excerpt && <p className="excerpt">{excerpt}</p>}
+      {data?.items.map((n) => (
+        <div className="card notice" key={n.id}>
+          <div className="meta">
+            <span className="tag">{n.source_name}</span>
+            <span>{formatTime(n.published_at)}</span>
+            {n.matched_keywords.map((k) => (
+              <span className="kw" key={k}>{k}</span>
+            ))}
           </div>
-        );
-      })}
+          <h3>
+            <a href={n.url} target="_blank" rel="noreferrer">{n.title}</a>
+          </h3>
+        </div>
+      ))}
 
       {data && data.items.length === 0 && <p className="empty">暂无符合条件的公告。可调整筛选，或到「源管理」手动抓取。</p>}
 
