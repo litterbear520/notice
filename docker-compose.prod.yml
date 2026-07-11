@@ -1,0 +1,22 @@
+# 生产部署：镜像由 GitHub Actions 构建并推到 GHCR，服务器只拉取（2G 内存机器不现场构建）。
+# 服务器用法（/opt/notice 下需有本文件和 .env）：
+#   docker compose -f docker-compose.prod.yml pull
+#   docker compose -f docker-compose.prod.yml up -d
+services:
+  backend:
+    image: ghcr.io/litterbear520/notice-backend:latest
+    env_file: .env
+    environment:
+      DATABASE_URL: sqlite:///./data/notice.db
+    volumes:
+      - ./data:/app/data
+    # 不映射公网端口：仅 frontend 经 compose 内部网络访问
+    restart: unless-stopped
+
+  frontend:
+    image: ghcr.io/litterbear520/notice-frontend:latest
+    depends_on:
+      - backend
+    ports:
+      - "80:3000"
+    restart: unless-stopped
