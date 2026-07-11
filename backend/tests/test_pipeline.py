@@ -104,6 +104,57 @@ def test_long_url_truncation_consistent(db, source, monkeypatch):
     assert source.last_fetch_status == "ok"
 
 
+def _stub_failure(monkeypatch):
+    def raise_err(t, u):
+        raise AdapterError("站点故障")
+
+    monkeypatch.setattr(pipeline, "fetch_items", raise_err)
+
+
+def test_source_alert_sent_once_after_threshold(db, source, monkeypatch, sent_emails):
+    _stub_failure(monkeypatch)
+    for _ in range(4):  # 阈值 3，第 4 轮不应重复告警
+        pipeline.run_round(db)
+    alerts = [m for m in sent_emails if "告警" in m["subject"]]
+    assert len(alerts) == 1
+    assert alerts[0]["to"] == ["admin@qq.com"]  # conftest 里的 ADMIN_EMAILS
+    assert "测试源" in alerts[0]["subject"]
+    assert "站点故障" in alerts[0]["html"]
+
+
+def test_source_alert_not_sent_below_threshold(db, source, monkeypatch, sent_emails):
+    _stub_failure(monkeypatch)
+    pipeline.run_round(db)
+    pipeline.run_round(db)
+    assert sent_emails == []
+
+
+def test_source_alert_counter_resets_on_recovery(db, source, monkeypatch, sent_emails):
+    _stub_failure(monkeypatch)
+    pipeline.run_round(db)
+    pipeline.run_round(db)
+    _stub_items(monkeypatch, [])  # 恢复一轮，计数清零
+    pipeline.run_round(db)
+    _stub_failure(monkeypatch)
+    pipeline.run_round(db)
+    pipeline.run_round(db)
+    assert sent_emails == []  # 恢复后重新累计，还没到 3
+    pipeline.run_round(db)
+    assert len([m for m in sent_emails if "告警" in m["subject"]]) == 1
+
+
+def test_source_alert_send_failure_does_not_break_round(db, source, monkeypatch):
+    _stub_failure(monkeypatch)
+
+    def boom(recipients, subject, html):
+        raise RuntimeError("SMTP down")
+
+    monkeypatch.setattr("app.mailer.send_email", boom)
+    for _ in range(3):
+        result = pipeline.run_round(db)
+    assert result["sources"] == 1  # 告警发不出去不影响流水线
+
+
 def test_run_round_covers_enabled_sources_only(db, monkeypatch, sent_emails):
     s1 = Source(name="启用源", type="rss", url="http://a", enabled=True)
     s2 = Source(name="停用源", type="rss", url="http://b", enabled=False)

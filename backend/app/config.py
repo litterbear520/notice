@@ -18,6 +18,8 @@ class Settings:
     enable_scheduler: bool = os.getenv("ENABLE_SCHEDULER", "1") == "1"
     # 管理员邮箱，逗号分隔；仅管理员可管理源/关键词与查看成员列表
     admin_emails: str = os.getenv("ADMIN_EMAILS", "970219247@qq.com")
+    # 源连续抓取失败达到该轮数时，给管理员发一次告警邮件
+    source_alert_failures: int = int(os.getenv("SOURCE_ALERT_FAILURES", "3"))
 
     @property
     def admin_email_set(self) -> frozenset[str]:

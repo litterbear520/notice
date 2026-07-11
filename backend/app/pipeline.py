@@ -1,16 +1,21 @@
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
+from html import escape
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from . import mailer
 from .adapters import AdapterError, fetch_items
+from .config import settings
 from .matching import find_matches
 from .models import Keyword, Notice, Source, User
 
 logger = logging.getLogger(__name__)
+
+# 各源的连续失败轮数（进程内状态，依赖单 worker 部署；重启后重新累计）
+_consecutive_failures: dict[int, int] = {}
 
 
 def fetch_source(db: Session, source: Source) -> int:
@@ -90,10 +95,46 @@ def send_pending(db: Session) -> int:
     return len(pending)
 
 
+def _track_source_health(source: Source) -> None:
+    """连续失败达到阈值时给管理员发一次告警，恢复后计数清零。"""
+    if source.last_fetch_status == "error":
+        count = _consecutive_failures.get(source.id, 0) + 1
+        _consecutive_failures[source.id] = count
+        if count == settings.source_alert_failures:
+            _send_source_alert(source, count)
+    else:
+        _consecutive_failures.pop(source.id, None)
+
+
+def _send_source_alert(source: Source, failures: int) -> None:
+    admins = sorted(settings.admin_email_set)
+    if not admins:
+        return
+    beijing = datetime.utcnow() + timedelta(hours=8)
+    subject = f"【公告聚合告警】源「{source.name}」连续 {failures} 轮抓取失败"
+    html = (
+        f"<p>源「{escape(source.name)}」已连续 {failures} 轮抓取失败，"
+        f"期间该源的新公告会延迟或漏检，请尽快排查。</p>"
+        f"<p>源地址：{escape(source.url)}<br>"
+        f"最近错误：{escape(source.last_error or '未知')}<br>"
+        f"时间：{beijing:%Y-%m-%d %H:%M}（北京时间）</p>"
+        f"<p>可到「源管理」页手动抓取验证；常见原因是站点临时故障或页面改版。"
+        f"恢复后计数自动清零，再次故障会重新告警。</p>"
+    )
+    try:
+        mailer.send_email(admins, subject, html)
+        logger.info("已向管理员发送源告警: %s", source.name)
+    except Exception as e:
+        logger.error("源告警邮件发送失败: %s", e)
+
+
 def run_round(db: Session) -> dict:
     """一轮完整流水线：抓取所有启用源 + 发送待发通知。"""
     sources = list(db.scalars(select(Source).where(Source.enabled == True)))  # noqa: E712
-    total_new = sum(fetch_source(db, s) for s in sources)
+    total_new = 0
+    for s in sources:
+        total_new += fetch_source(db, s)
+        _track_source_health(s)
     notified = send_pending(db)
     logger.info("本轮完成：%d 个源，新条目 %d，通知 %d 条", len(sources), total_new, notified)
     return {"sources": len(sources), "new_items": total_new, "notified": notified}

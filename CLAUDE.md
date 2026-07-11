@@ -34,6 +34,7 @@ npx tsc --noEmit  # 仅类型检查（最快）
 
 1. `fetch_source`：对每个启用源调用 `adapters.fetch_items(type, url)` → 按 `(source_id, url)` 去重入库 → `matching.find_matches`（大小写不敏感子串、OR 语义）标记命中 → 更新源的 `last_fetch_status`
 2. `send_pending`：把 `matched=True, notified_at=None, is_baseline=False` 的公告合并为一封邮件群发；发送失败不标记，下一轮自动重试
+3. `_track_source_health`：源连续 `SOURCE_ALERT_FAILURES`（默认 3）轮抓取失败时给 `ADMIN_EMAILS` 发一次告警邮件，恢复后计数清零（进程内计数，重启重新累计）
 
 **基线语义**：源的首次抓取所有条目标 `is_baseline=True`，永不触发邮件——避免新增源时轰炸历史公告。
 
