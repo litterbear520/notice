@@ -48,14 +48,15 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <h2 style={{ marginBottom: 16 }}>个人设置</h2>
+      <h2 className="page-title">个人设置</h2>
+      <p className="page-desc">管理你的邮件提醒偏好，并查看订阅成员。</p>
       {error && <div className="error-box">{error}</div>}
 
       <div className="card">
         <div className="form-row" style={{ justifyContent: "space-between" }}>
           <div>
             <div style={{ fontWeight: 600 }}>{me.email}</div>
-            <div style={{ fontSize: 13, color: "#6b7280", marginTop: 4 }}>
+            <div className="muted" style={{ fontSize: 13, marginTop: 4 }}>
               邮件提醒：{me.notify_enabled ? "已开启" : "已关闭"}
             </div>
           </div>
@@ -68,7 +69,8 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <h3 style={{ margin: "20px 0 12px" }}>成员列表</h3>
+      <h3 className="section-title">成员列表</h3>
+      <div className="table-wrap">
       <table>
         <thead>
           <tr><th>邮箱</th><th>提醒</th><th>最近登录</th></tr>
@@ -78,11 +80,12 @@ export default function SettingsPage() {
             <tr key={m.email}>
               <td>{m.email}</td>
               <td>{m.notify_enabled ? <span className="status-ok">开启</span> : "关闭"}</td>
-              <td>{formatTime(m.last_login_at)}</td>
+              <td className="nowrap">{formatTime(m.last_login_at)}</td>
             </tr>
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

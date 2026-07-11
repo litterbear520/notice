@@ -39,12 +39,12 @@ export default function LoginPage() {
 
   return (
     <div className="card" style={{ maxWidth: 420, margin: "48px auto", padding: 32 }}>
-      <h2 style={{ marginBottom: 8 }}>邮箱登录</h2>
-      <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 20 }}>
+      <h2 className="page-title">邮箱登录</h2>
+      <p className="page-desc">
         登录即订阅：新公告提醒会发送到这个邮箱。
       </p>
       {error && <div className="error-box">{error}</div>}
-      {message && <p style={{ fontSize: 13, color: "#16a34a", marginBottom: 12 }}>{message}</p>}
+      {message && <p className="success-text">{message}</p>}
 
       {stage === "email" ? (
         <div className="form-row">

@@ -84,7 +84,8 @@ export default function SourcesPage() {
 
   return (
     <div>
-      <h2 style={{ marginBottom: 16 }}>源管理</h2>
+      <h2 className="page-title">源管理</h2>
+      <p className="page-desc">管理公告来源：新增、启停、编辑，或手动触发一次抓取。</p>
       {error && <div className="error-box">{error}（管理操作需要先登录）</div>}
 
       <div className="card">
@@ -100,6 +101,7 @@ export default function SourcesPage() {
         </div>
       </div>
 
+      <div className="table-wrap">
       <table>
         <thead>
           <tr>
@@ -113,7 +115,7 @@ export default function SourcesPage() {
                 <td>
                   <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} />
                   {s.is_builtin ? (
-                    <div style={{ fontSize: 12, color: "#9ca3af", wordBreak: "break-all" }}>{s.url}</div>
+                    <div className="subtle">{s.url}</div>
                   ) : (
                     <input type="text" style={{ marginTop: 4 }}
                            value={editUrl} onChange={(e) => setEditUrl(e.target.value)} />
@@ -122,11 +124,11 @@ export default function SourcesPage() {
               ) : (
                 <td>
                   {s.name}
-                  <div style={{ fontSize: 12, color: "#9ca3af", wordBreak: "break-all" }}>{s.url}</div>
+                  <div className="subtle">{s.url}</div>
                 </td>
               )}
-              <td>{TYPE_LABELS[s.type] ?? s.type}</td>
-              <td>{formatTime(s.last_fetch_at)}</td>
+              <td className="nowrap">{TYPE_LABELS[s.type] ?? s.type}</td>
+              <td className="nowrap">{formatTime(s.last_fetch_at)}</td>
               <td>
                 {s.last_fetch_status === "ok" && <span className="status-ok">正常</span>}
                 {s.last_fetch_status === "error" && (
@@ -134,7 +136,7 @@ export default function SourcesPage() {
                     失败：{(s.last_error ?? "").slice(0, 80)}
                   </span>
                 )}
-                {!s.last_fetch_status && <span style={{ color: "#9ca3af" }}>未抓取</span>}
+                {!s.last_fetch_status && <span className="muted">未抓取</span>}
               </td>
               <td>
                 <div className="form-row">
@@ -161,6 +163,7 @@ export default function SourcesPage() {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

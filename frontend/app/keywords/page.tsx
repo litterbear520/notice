@@ -32,8 +32,8 @@ export default function KeywordsPage() {
 
   return (
     <div>
-      <h2 style={{ marginBottom: 16 }}>关键词管理</h2>
-      <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 16 }}>
+      <h2 className="page-title">关键词管理</h2>
+      <p className="page-desc">
         公告标题或正文命中任一启用的关键词（不区分大小写）即触发邮件提醒。
       </p>
       {error && <div className="error-box">{error}（管理操作需要先登录）</div>}
@@ -47,6 +47,7 @@ export default function KeywordsPage() {
         </div>
       </div>
 
+      <div className="table-wrap">
       <table>
         <thead>
           <tr><th>关键词</th><th>状态</th><th>操作</th></tr>
@@ -70,6 +71,7 @@ export default function KeywordsPage() {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

@@ -53,6 +53,22 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
   return data as T;
 }
 
+// 摘要由后端截断原文得来，可能残留 Markdown/HTML 语法，展示前清洗为纯文本
+export function cleanExcerpt(raw: string | null | undefined): string {
+  if (!raw) return "";
+  return raw
+    .replace(/<[^>]*>/g, " ")                  // 完整 HTML 标签
+    .replace(/<[^>]*$/, "")                    // 截断处的残缺标签，如 <span id="
+    .replace(/&[a-zA-Z#0-9]+;/g, " ")          // HTML 实体
+    .replace(/!\[[^\]]*\]\s*\([^)]*\)/g, " ")  // Markdown 图片
+    .replace(/\[([^\]]*)\]\s*\([^)]*\)/g, "$1") // Markdown 链接 → 保留文字
+    .replace(/https?:\/\/\S+/g, " ")           // 裸 URL
+    .replace(/[#*`>|]+/g, " ")                 // Markdown 标记符
+    .replace(/[（(]\s*[)）]/g, " ")            // 清洗后残留的空括号
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export function formatTime(iso: string | null): string {
   if (!iso) return "—";
   return new Date(iso.endsWith("Z") ? iso : iso + "Z").toLocaleString("zh-CN", {
