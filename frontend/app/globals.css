@@ -187,6 +187,10 @@ a:hover { text-decoration: underline; }
   user-select: none;
   border-radius: var(--r-sm);
 }
+[data-theme="dark"] .fable-banner {
+  /* 羊皮纸底横幅在暖黑画布上像一枚实体标签，压一点亮度融入环境 */
+  filter: brightness(0.88);
+}
 .section-title {
   font-family: var(--font-display);
   font-size: 17px;
