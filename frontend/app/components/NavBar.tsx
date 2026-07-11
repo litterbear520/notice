@@ -23,7 +23,7 @@ export default function NavBar() {
     <nav className="nav">
       <Link className="brand" href="/">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="spark" src="/fable-badge.png" alt="" width={26} height={26} />
+        <img className="spark" src="/fable-badge.png" alt="" width={28} height={28} />
         模型公告聚合
       </Link>
       <Link className={`link${pathname === "/" ? " active" : ""}`} href="/">
