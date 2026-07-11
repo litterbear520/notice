@@ -13,6 +13,8 @@ FROM node:20-alpine
 WORKDIR /app
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
+# standalone 产物不含 public/，静态资源需单独拷贝
+COPY --from=builder /app/public ./public
 
 EXPOSE 3000
 ENV HOSTNAME=0.0.0.0 PORT=3000
