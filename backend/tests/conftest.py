@@ -11,6 +11,17 @@ from sqlalchemy.pool import StaticPool
 from app.models import Base
 
 
+@pytest.fixture(autouse=True)
+def _reset_rate_limiters():
+    """限流器是进程级内存状态，测试间必须清空。"""
+    from app import auth
+
+    auth.email_code_limiter.reset()
+    auth.global_code_limiter.reset()
+    auth.verify_limiter.reset()
+    yield
+
+
 @pytest.fixture()
 def db():
     engine = create_engine(

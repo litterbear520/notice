@@ -45,6 +45,8 @@ def request_code(body: RequestCodeBody, db: Session = Depends(get_session)):
 @router.post("/auth/verify")
 def verify(body: VerifyBody, response: Response, db: Session = Depends(get_session)):
     email = body.email.strip().lower()
+    if not auth.verify_limiter.allow(email):
+        raise HTTPException(status_code=429, detail="尝试次数过多，请稍后再试")
     if not auth.verify_login_code(db, email, body.code.strip()):
         raise HTTPException(status_code=400, detail="验证码错误或已过期")
     user = db.scalars(select(User).where(User.email == email)).first()

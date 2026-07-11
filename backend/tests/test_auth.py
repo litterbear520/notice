@@ -87,3 +87,40 @@ def test_logout_clears_cookie(client, db, sent_emails):
     _login(client, db)
     client.post("/api/auth/logout")
     assert client.get("/api/me").status_code == 401
+
+
+def test_request_code_global_hourly_cap(client, db, sent_emails, monkeypatch):
+    from app import auth
+
+    monkeypatch.setattr(auth, "global_code_limiter", auth.SlidingWindowLimiter(2, 3600))
+    assert _request_code(client, "a@qq.com").status_code == 200
+    assert _request_code(client, "b@qq.com").status_code == 200
+    assert _request_code(client, "c@qq.com").status_code == 429
+    assert len(sent_emails) == 2
+
+
+def test_request_code_per_email_hourly_cap(client, db, sent_emails, monkeypatch):
+    from app import auth
+
+    monkeypatch.setattr(auth, "RESEND_INTERVAL_SECONDS", 0)  # 绕开 60 秒间隔，单测小时配额
+    monkeypatch.setattr(auth, "email_code_limiter", auth.SlidingWindowLimiter(2, 3600))
+    assert _request_code(client).status_code == 200
+    assert _request_code(client).status_code == 200
+    assert _request_code(client).status_code == 429
+    # 其他邮箱不受影响
+    assert _request_code(client, "other@qq.com").status_code == 200
+
+
+def test_verify_attempt_cap(client, db, sent_emails, monkeypatch):
+    from app import auth
+
+    monkeypatch.setattr(auth, "verify_limiter", auth.SlidingWindowLimiter(3, 600))
+    _request_code(client)
+    code = db.scalars(select(LoginCode)).one().code
+    for _ in range(3):
+        assert client.post(
+            "/api/auth/verify", json={"email": "user@qq.com", "code": "000000"}
+        ).status_code == 400
+    # 尝试次数用尽后，即使验证码正确也拒绝
+    resp = client.post("/api/auth/verify", json={"email": "user@qq.com", "code": code})
+    assert resp.status_code == 429
