@@ -38,20 +38,8 @@ export default function Home() {
 
   return (
     <div>
-      <div className="page-head">
-        <div>
-          <h2 className="page-title">公告时间线</h2>
-          <p className="page-desc">聚合各模型厂商的官方公告，命中关键词的公告会触发邮件提醒。</p>
-        </div>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          className="fable-banner"
-          src="/built-with-fable5.jpg"
-          alt="Built with Fable 5"
-          title="本项目由 Claude Fable 5 协助开发"
-          draggable={false}
-        />
-      </div>
+      <h2 className="page-title">公告时间线</h2>
+      <p className="page-desc">聚合各模型厂商的官方公告，命中关键词的公告会触发邮件提醒。</p>
       <div className="toolbar">
         <select value={sourceId} onChange={(e) => { setSourceId(e.target.value); setPage(1); }}>
           <option value="">全部源</option>

@@ -71,9 +71,8 @@ export default function LoginPage() {
     <div className="login-wrap">
       <div className="login-card">
         <div className="login-logo" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round">
-            <path d="M12 3v18M3 12h18M6 6l12 12M18 6L6 18" />
-          </svg>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/fable-badge.png" alt="" width={32} height={32} />
         </div>
 
         {stage === "email" ? (
