@@ -45,9 +45,9 @@ export default function Home() {
         </div>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          className="fable-verified"
-          src="/fable5-verified.png"
-          alt="Fable 5 Verified"
+          className="fable-banner"
+          src="/built-with-fable5.jpg"
+          alt="Built with Fable 5"
           title="本项目由 Claude Fable 5 协助开发"
           draggable={false}
         />
