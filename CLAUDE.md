@@ -44,7 +44,7 @@ npx tsc --noEmit  # 仅类型检查（最快）
 
 - `rss.py`：feedparser，`aliyun_rss` 与自定义 `rss` 共用
 - `webpage.py`：抓取页面全部同域链接当条目（不执行 JS，SPA 页面抓不到）
-- `volcengine.py`：解析文档页内嵌的 `window._ROUTER_DATA` JSON。盯守 3 个"原地更新"的文档（`WATCH_DOC_IDS`），用 `UpdatedTime` 合成带时间戳锚点的 URL 实现"更新即新条目"；同时扫目录树发现新增文档（注意：新增文档只有标题没有正文和时间）。**该站点 SSR 间歇性以 HTTP 200 返回不含 `_ROUTER_DATA` 的错误壳页面**（实测故障率可达 50%），因此有 4 次尝试 + 递增退避的重试逻辑，勿删
+- `volcengine.py`：主路径调用文档站前端使用的官方 `getDocDetail` / `getDocList` API。盯守 3 个"原地更新"的文档（`WATCH_DOC_IDS`），用 `UpdatedTime` 合成带时间戳锚点的 URL 实现"更新即新条目"；同时按目录 API 的 `DocumentID` / `ParentID` 遍历公告子树以发现新增文档（注意：新增文档只有标题没有正文和时间）。旧的 `window._ROUTER_DATA` SSR 解析仅在详情 API 全部失败时回退使用；SSR 会间歇返回 HTTP 200 空壳，因此 API 和 SSR 都保留 4 次尝试 + 递增退避，勿删
 
 ### 认证与限流（auth.py）
 
